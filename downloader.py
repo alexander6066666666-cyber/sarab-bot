@@ -1,22 +1,28 @@
-
 import yt_dlp
+import uuid
+
 
 def search_youtube(query):
 
     ydl_opts = {
         "quiet": True,
-        "default_search": "ytsearch20"
+        "skip_download": True
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(query, download=False)
+        result = ydl.extract_info(f"ytsearch20:{query}", download=False)
 
-    return info["entries"]
+    return result["entries"]
 
 
 def get_video_info(url):
 
-    with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
+    ydl_opts = {
+        "quiet": True,
+        "skip_download": True
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
 
     return info
@@ -24,33 +30,38 @@ def get_video_info(url):
 
 def download_video(url):
 
+    filename = f"{uuid.uuid4()}.mp4"
+
     ydl_opts = {
         "format": "best",
-        "outtmpl": "video.%(ext)s",
+        "outtmpl": filename,
         "quiet": True
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-
-        info = ydl.extract_info(url, download=True)
-
-        filename = ydl.prepare_filename(info)
+        ydl.download([url])
 
     return filename
 
 
 def download_audio(url):
 
+    filename = f"{uuid.uuid4()}.mp3"
+
     ydl_opts = {
         "format": "bestaudio",
-        "outtmpl": "audio.%(ext)s",
-        "quiet": True
+        "outtmpl": filename,
+        "quiet": True,
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192"
+        }]
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-
         info = ydl.extract_info(url, download=True)
 
-        filename = ydl.prepare_filename(info)
+    title = info.get("title", "audio")
 
-    return filename, info.get("title","audio")
+    return filename, title
