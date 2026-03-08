@@ -1,4 +1,0 @@
-pyTelegramBotAPI
-yt-dlp
-requests
-beautifulsoup4
